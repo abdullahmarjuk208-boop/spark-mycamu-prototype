@@ -17,7 +17,11 @@ type Screen =
   | "review"
   | "confirm"
   | "success"
-  | "record";
+  | "record"
+  | "attendance"
+  | "results"
+  | "schedule"
+  | "services";
 
 type UploadState = "idle" | "uploading" | "valid" | "error";
 type IconName =
@@ -73,6 +77,27 @@ const courses = [
   { code: "BIT2113", name: "Project Management", detail: "Next class Thursday", tone: "amber" },
 ];
 
+const academicCourses = [
+  { code: "BIT2323", name: "User Experience Design", lecturer: "Dr. Aisha Rahman", attendance: 92, grade: "A-", progress: 76, next: "Studio · Wed 10:00 AM" },
+  { code: "BIT2124", name: "Database Management", lecturer: "Mr. Daniel Lee", attendance: 88, grade: "B+", progress: 68, next: "Lab · Thu 2:00 PM" },
+  { code: "BIT2213", name: "Artificial Intelligence", lecturer: "Dr. Kavitha Nair", attendance: 95, grade: "A", progress: 81, next: "Lecture · Fri 9:00 AM" },
+  { code: "BIT2113", name: "Project Management", lecturer: "Ms. Farah Lim", attendance: 84, grade: "B", progress: 62, next: "Tutorial · Fri 3:00 PM" },
+  { code: "BIT2133", name: "Software Testing", lecturer: "Mr. Amir Hakim", attendance: 90, grade: "A-", progress: 72, next: "Lab · Mon 11:00 AM" },
+];
+
+const todaySchedule = [
+  { time: "10:00", end: "12:00", code: "BIT2323", title: "UX Design Studio", room: "Block A · Lab 6", status: "Next" },
+  { time: "14:00", end: "16:00", code: "BIT2124", title: "Database Lab", room: "Block B · Lab 2", status: "Later" },
+  { time: "16:30", end: "17:30", code: "ADV101", title: "Academic Advising", room: "Student Hub · L2", status: "Later" },
+];
+
+const serviceItems = [
+  { title: "Student timetable", detail: "Weekly classes and rooms", icon: "calendar" as IconName, target: "schedule" as Screen },
+  { title: "Attendance", detail: "Overall and course records", icon: "check" as IconName, target: "attendance" as Screen },
+  { title: "Results & CGPA", detail: "Grades and progression", icon: "task" as IconName, target: "results" as Screen },
+  { title: "Student services", detail: "Letters, forms and finance", icon: "file" as IconName, target: "services" as Screen },
+];
+
 const screenTitles: Record<Screen, string> = {
   institution: "Welcome",
   login: "Student sign in",
@@ -88,6 +113,10 @@ const screenTitles: Record<Screen, string> = {
   confirm: "Final confirmation",
   success: "Submission complete",
   record: "Submission record",
+  attendance: "Attendance",
+  results: "Results and CGPA",
+  schedule: "Class schedule",
+  services: "Student services",
 };
 
 function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
@@ -350,26 +379,43 @@ export default function Home() {
   const renderHome = () => (
     <>
       <section className="welcome-row">
-        <div><p className="eyebrow">TUESDAY · 21 JULY</p><h1>Good afternoon, Nadia</h1><p className="muted">Here is what needs your attention today.</p></div>
-        <div className="day-progress"><span><strong>2</strong> tasks due soon</span><span><strong>1</strong> new update</span></div>
+        <div><p className="eyebrow">STUDENT DASHBOARD · MAY–AUGUST 2026</p><h1>Good afternoon, Nadia</h1><p className="muted">Your academic progress, deadlines and campus day in one place.</p></div>
+        <div className="semester-pill"><span>Current semester</span><strong>Week 8 of 14</strong><div><i style={{ width: "57%" }} /></div></div>
+      </section>
+      <section className="academic-kpis" aria-label="Academic summary">
+        <button className="kpi-card teal-kpi" onClick={() => goPrimary("courses")}><span className="kpi-icon"><Icon name="book" /></span><span><small>ENROLLED COURSES</small><strong>5</strong><em>15 credit hours</em></span><Icon name="chevron" size={18} /></button>
+        <button className="kpi-card blue-kpi" onClick={() => navigate("results")}><span className="kpi-icon"><Icon name="task" /></span><span><small>CURRENT CGPA</small><strong>3.52</strong><em className="positive">↑ 0.14 this semester</em></span><Icon name="chevron" size={18} /></button>
+        <button className="kpi-card amber-kpi" onClick={() => goPrimary("tasks")}><span className="kpi-icon"><Icon name="clock" /></span><span><small>ASSIGNMENTS DUE</small><strong>3</strong><em>1 due today</em></span><Icon name="chevron" size={18} /></button>
+        <button className="kpi-card green-kpi" onClick={() => navigate("attendance")}><span className="kpi-icon"><Icon name="check" /></span><span><small>ATTENDANCE</small><strong>89.8%</strong><em className="positive">Above 80% requirement</em></span><Icon name="chevron" size={18} /></button>
       </section>
       <section aria-labelledby="due-heading">
         <div className="section-heading"><div><p className="eyebrow">PRIORITISED FOR YOU</p><h2 id="due-heading">Due soon</h2></div><button className="text-action" onClick={() => goPrimary("tasks")}>View all tasks <Icon name="chevron" /></button></div>
         <div className="task-grid">{taskData.slice(0, 2).map((task) => <TaskCard key={task.title} task={task} onOpen={() => navigate(task.title.includes("UX") ? "assignment" : "tasks")} />)}</div>
       </section>
-      <section className="dashboard-lower">
-        <div>
-          <div className="section-heading compact"><h2>Quick access</h2></div>
-          <div className="quick-grid">
-            <button onClick={() => goPrimary("courses")}><span className="quick-icon teal"><Icon name="book" /></span><strong>Materials</strong><small>Recent course files</small></button>
-            <button><span className="quick-icon blue"><Icon name="calendar" /></span><strong>Calendar</strong><small>Classes and deadlines</small></button>
-            <button><span className="quick-icon amber"><Icon name="task" /></span><strong>Results</strong><small>Latest academic results</small></button>
-          </div>
-        </div>
-        <article className="update-card">
-          <div className="update-top"><span className="quick-icon violet"><Icon name="bell" /></span><StatusBadge tone="new">NEW</StatusBadge></div>
-          <p className="eyebrow">BIT2323 · 20 MIN AGO</p><h3>Part 4 prototype clarification</h3><p>Your prototype should demonstrate navigation, accessibility and a clearly improved user experience.</p>
-          <button className="text-action" onClick={() => navigate("announcement")}>Read announcement <Icon name="chevron" /></button>
+      <section className="portal-grid">
+        <article className="portal-panel schedule-panel">
+          <div className="section-heading compact"><div><p className="eyebrow">TUESDAY · 21 JULY</p><h2>Today’s schedule</h2></div><button className="text-action" onClick={() => navigate("schedule")}>Full timetable <Icon name="chevron" /></button></div>
+          <div className="schedule-list">{todaySchedule.map((item) => <button key={item.time} onClick={() => navigate("schedule")}><span className="schedule-time"><strong>{item.time}</strong><small>{item.end}</small></span><span className="schedule-line" /><span className="schedule-copy"><small>{item.code} · {item.status}</small><strong>{item.title}</strong><em>{item.room}</em></span><Icon name="chevron" size={17} /></button>)}</div>
+        </article>
+        <article className="portal-panel attendance-panel">
+          <div className="section-heading compact"><div><p className="eyebrow">LIVE OVERVIEW</p><h2>Attendance</h2></div><button className="text-action" onClick={() => navigate("attendance")}>Details <Icon name="chevron" /></button></div>
+          <div className="attendance-hero"><div className="attendance-ring"><strong>89.8%</strong><span>Overall</span></div><div><strong>Safe standing</strong><p>You can miss a maximum of 2 remaining classes while staying above 80%.</p></div></div>
+          <div className="mini-attendance">{academicCourses.slice(0, 3).map((course) => <div key={course.code}><span><strong>{course.code}</strong><small>{course.name}</small></span><b>{course.attendance}%</b><div><i style={{ width: `${course.attendance}%` }} /></div></div>)}</div>
+        </article>
+      </section>
+      <section>
+        <div className="section-heading"><div><p className="eyebrow">YOUR SEMESTER</p><h2>Course progress</h2></div><button className="text-action" onClick={() => goPrimary("courses")}>All courses <Icon name="chevron" /></button></div>
+        <div className="course-progress-grid">{academicCourses.slice(0, 4).map((course) => <button key={course.code} onClick={() => goPrimary("courses")}><span className="course-code-chip">{course.code}</span><strong>{course.name}</strong><small>{course.lecturer}</small><div className="course-progress-meta"><span>{course.progress}% complete</span><b>{course.grade}</b></div><div className="course-progress-track"><i style={{ width: `${course.progress}%` }} /></div><em>{course.next}</em></button>)}</div>
+      </section>
+      <section className="portal-grid lower">
+        <article className="portal-panel">
+          <div className="section-heading compact"><div><p className="eyebrow">CAMPUS SERVICES</p><h2>Quick services</h2></div></div>
+          <div className="service-grid">{serviceItems.map((item) => <button key={item.title} onClick={() => navigate(item.target)}><span className="quick-icon teal"><Icon name={item.icon} /></span><span><strong>{item.title}</strong><small>{item.detail}</small></span><Icon name="chevron" size={17} /></button>)}</div>
+        </article>
+        <article className="portal-panel notice-panel">
+          <div className="section-heading compact"><div><p className="eyebrow">LATEST ANNOUNCEMENTS</p><h2>Campus updates</h2></div><StatusBadge tone="new">2 NEW</StatusBadge></div>
+          <button className="notice-row" onClick={() => navigate("announcement")}><span className="quick-icon violet"><Icon name="bell" /></span><span><small>BIT2323 · 20 MIN AGO</small><strong>Part 4 prototype clarification</strong><em>Course announcement</em></span><Icon name="chevron" size={17} /></button>
+          <button className="notice-row"><span className="quick-icon blue"><Icon name="calendar" /></span><span><small>STUDENT AFFAIRS · YESTERDAY</small><strong>Semester examination timetable released</strong><em>University notice</em></span><Icon name="chevron" size={17} /></button>
         </article>
       </section>
     </>
@@ -462,6 +508,40 @@ export default function Home() {
     <aside className="record-actions"><h2>Version 1</h2><p>{fileName || "ui_part_4_prototype_report.pdf"}</p><StatusBadge tone="success">Current version</StatusBadge><Button icon="download" onClick={downloadReceipt} className="full">Download receipt</Button><Button variant="secondary" icon="download" className="full">Download submitted file</Button><Button variant="secondary" onClick={() => { setUploadState("idle"); navigate("upload"); }} className="full">Submit a new version</Button><small>Available until today, 11:59 PM. Previous versions remain recorded.</small></aside></div></>
   );
 
+  const renderAttendance = () => (
+    <><button className="back-link content-back" onClick={goBack}><Icon name="arrow" /> Dashboard</button>
+    <div className="page-title"><div><p className="eyebrow">MAY–AUGUST 2026</p><h1>Attendance</h1><p className="muted">Track every course against the university’s 80% attendance requirement.</p></div><StatusBadge tone="success">Overall 89.8%</StatusBadge></div>
+    <section className="detail-summary"><div><span>Classes attended</span><strong>79 / 88</strong><small>9 approved or missed sessions</small></div><div><span>Current standing</span><strong>Good</strong><small>All courses above requirement</small></div><div><span>Last recorded</span><strong>Today · 11:54 AM</strong><small>BIT2323 UX Design Studio</small></div></section>
+    <section className="data-panel"><div className="section-heading compact"><h2>Attendance by course</h2><button className="button secondary">Download report</button></div><div className="course-table">{academicCourses.map((course) => <div key={course.code}><span className="course-code-chip">{course.code}</span><span><strong>{course.name}</strong><small>{course.lecturer}</small></span><span className="table-progress"><div><i style={{ width: `${course.attendance}%` }} /></div><small>{course.attendance >= 90 ? "Excellent" : course.attendance >= 85 ? "Good" : "Monitor"}</small></span><b>{course.attendance}%</b></div>)}</div></section></>
+  );
+
+  const renderResults = () => (
+    <><button className="back-link content-back" onClick={goBack}><Icon name="arrow" /> Dashboard</button>
+    <div className="page-title"><div><p className="eyebrow">ACADEMIC PERFORMANCE</p><h1>Results & CGPA</h1><p className="muted">Your current performance, completed credits and grade trend.</p></div><Button variant="secondary" icon="download">Unofficial transcript</Button></div>
+    <section className="result-hero"><div><span>Cumulative GPA</span><strong>3.52</strong><small>Dean’s List standing</small></div><div><span>Semester GPA</span><strong>3.66</strong><small>↑ 0.14 from last semester</small></div><div><span>Credits</span><strong>93 / 120</strong><small>77.5% degree completion</small></div><div className="grade-bars"><i style={{ height: "52%" }} /><i style={{ height: "61%" }} /><i style={{ height: "68%" }} /><i style={{ height: "74%" }} /><i className="current" style={{ height: "84%" }} /><span>CGPA trend</span></div></section>
+    <section className="data-panel"><div className="section-heading compact"><h2>Current semester</h2><StatusBadge tone="neutral">Results in progress</StatusBadge></div><div className="result-table">{academicCourses.map((course) => <div key={course.code}><span className="course-code-chip">{course.code}</span><span><strong>{course.name}</strong><small>3 credit hours</small></span><span><small>Coursework</small><strong>{course.progress + 12}%</strong></span><b>{course.grade}</b></div>)}</div></section></>
+  );
+
+  const renderSchedule = () => (
+    <><button className="back-link content-back" onClick={goBack}><Icon name="arrow" /> Dashboard</button>
+    <div className="page-title"><div><p className="eyebrow">WEEK 8 · 20–24 JULY</p><h1>Class schedule</h1><p className="muted">Your classes, locations and academic appointments.</p></div><div className="filter-chips"><button>‹</button><button className="active">This week</button><button>›</button></div></div>
+    <section className="week-calendar">{["Monday 20", "Tuesday 21", "Wednesday 22", "Thursday 23", "Friday 24"].map((day, index) => <article key={day} className={index === 1 ? "today" : ""}><header><small>{day.split(" ")[0]}</small><strong>{day.split(" ")[1]}</strong>{index === 1 && <em>Today</em>}</header><div>{index === 0 && <><span><b>11:00</b><strong>Software Testing Lab</strong><small>BIT2133 · Lab 4</small></span><span><b>15:00</b><strong>Project Meeting</strong><small>Online · Teams</small></span></>}{index === 1 && todaySchedule.map((item) => <span key={item.time}><b>{item.time}</b><strong>{item.title}</strong><small>{item.room}</small></span>)}{index === 2 && <span><b>10:00</b><strong>UX Design Studio</strong><small>BIT2323 · Lab 6</small></span>}{index === 3 && <><span><b>09:00</b><strong>Database Lecture</strong><small>BIT2124 · Hall 3</small></span><span><b>14:00</b><strong>Database Lab</strong><small>BIT2124 · Lab 2</small></span></>}{index === 4 && <><span><b>09:00</b><strong>Artificial Intelligence</strong><small>BIT2213 · Hall 5</small></span><span><b>15:00</b><strong>Project Management</strong><small>BIT2113 · Room 2.12</small></span></>}</div></article>)}</section></>
+  );
+
+  const renderServices = () => (
+    <><button className="back-link content-back" onClick={goBack}><Icon name="arrow" /> Dashboard</button>
+    <div className="page-title"><div><p className="eyebrow">STUDENT HUB</p><h1>Student services</h1><p className="muted">Common requests, records and support without searching across separate systems.</p></div></div>
+    <section className="service-catalog">{[
+      ["Fees & payments", "Outstanding balance: RM 0.00", "check"],
+      ["Official letters", "Request enrolment or confirmation letters", "file"],
+      ["Academic forms", "Add/drop, deferment and appeal forms", "task"],
+      ["Examinations", "Timetable, regulations and results", "calendar"],
+      ["Library account", "3 items borrowed · None overdue", "book"],
+      ["IT help desk", "Report Spark or university account issues", "help"],
+    ].map(([title, detail, icon]) => <button key={title}><span className="quick-icon teal"><Icon name={icon as IconName} /></span><span><strong>{title}</strong><small>{detail}</small></span><Icon name="chevron" /></button>)}</section>
+    <article className="support-banner"><span className="quick-icon teal"><Icon name="help" /></span><div><p className="eyebrow">NEED HUMAN SUPPORT?</p><h2>Student Services Centre</h2><p>Monday–Friday, 8:30 AM–5:30 PM · Ground Floor, Student Hub</p></div><Button>Start support request</Button></article></>
+  );
+
   const renderScreen = () => {
     switch (screen) {
       case "home": return renderHome();
@@ -476,6 +556,10 @@ export default function Home() {
       case "confirm": return renderConfirm();
       case "success": return renderSuccess();
       case "record": return renderRecord();
+      case "attendance": return renderAttendance();
+      case "results": return renderResults();
+      case "schedule": return renderSchedule();
+      case "services": return renderServices();
       default: return renderHome();
     }
   };
