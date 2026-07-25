@@ -17,6 +17,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,30 +27,34 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: spark_mycamu_github_pages/package-lock.json
 
       - name: Install dependencies
+        working-directory: spark_mycamu_github_pages
         run: npm ci
 
-      - name: Build
+      - name: Build website
+        working-directory: spark_mycamu_github_pages
         run: npm run build
 
-      - name: Configure Pages
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
 
-      - name: Upload Pages artifact
+      - name: Upload website
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./dist
+          path: spark_mycamu_github_pages/dist
 
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     needs: build
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Deploy
+      - name: Deploy website
         id: deployment
         uses: actions/deploy-pages@v4
